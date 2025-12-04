@@ -167,3 +167,10 @@ class BufferManager:
             return self._buffer_order[index]
         return None
 
+    def get_buffer_by_path(self, path: str) -> str | None:
+        """Get buffer ID by file path. Returns None if not found."""
+        for buffer in self._buffers.values():
+            if buffer.path == str(path):
+                return buffer.id
+        return None
+

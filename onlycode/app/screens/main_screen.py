@@ -1,11 +1,13 @@
 from textual.screen import Screen
 from textual.widgets import Header, Footer
+from textual.containers import Horizontal
 from textual.binding import Binding
 from pathlib import Path
 from onlycode.editor.editor_widget import OnlyCodeEditor
 from onlycode.editor.buffer_manager import BufferManager, Buffer
 from onlycode.app.widgets.status_bar import StatusBar
 from onlycode.app.widgets.tab_bar import TabBar, TabInfo
+from onlycode.app.widgets.file_browser import FileBrowser
 from onlycode.app.screens.file_dialogs import OpenFileDialog, SaveFileDialog, ConfirmCloseDialog
 from onlycode.shared.config.session import SessionManager
 
@@ -13,11 +15,22 @@ from onlycode.shared.config.session import SessionManager
 class MainScreen(Screen):
     """The main screen of the application."""
 
+    DEFAULT_CSS = """
+    MainScreen #main-container {
+        height: 1fr;
+    }
+
+    MainScreen #editor-container {
+        width: 1fr;
+    }
+    """
+
     BINDINGS = [
         Binding("ctrl+o", "open_file", "Open", priority=True),
         Binding("ctrl+s", "save_file", "Save", priority=True),
         Binding("ctrl+t", "new_file", "New Tab", priority=True),
         Binding("ctrl+w", "close_buffer", "Close", priority=True),
+        Binding("ctrl+b", "toggle_file_browser", "Browser", priority=True),
         # Tab navigation: ctrl+pagedown/pageup are standard in many editors
         Binding("ctrl+pagedown", "next_buffer", "Next Tab", show=False, priority=True),
         Binding("ctrl+pageup", "prev_buffer", "Prev Tab", show=False, priority=True),
@@ -43,9 +56,13 @@ class MainScreen(Screen):
         self._loading_buffer = True  # Start True to prevent marking as modified during initial setup
 
     def compose(self):
+        from textual.containers import Vertical
         yield Header()
-        yield TabBar(id="tab-bar")
-        yield OnlyCodeEditor(id="editor")
+        with Horizontal(id="main-container"):
+            yield FileBrowser(id="file-browser", classes="hidden")
+            with Vertical(id="editor-container"):
+                yield TabBar(id="tab-bar")
+                yield OnlyCodeEditor(id="editor")
         yield StatusBar(id="status-bar")
         yield Footer()
 
@@ -56,17 +73,18 @@ class MainScreen(Screen):
             self._create_new_buffer()
         self.query_one(OnlyCodeEditor).focus()
         # Delay enabling change detection until after Textual finishes setup
-        self.call_after_refresh(self._enable_change_detection)
+        # Use set_timer to ensure this runs after all call_after_refresh callbacks
+        self.set_timer(0.1, self._enable_change_detection)
 
     def _enable_change_detection(self):
         """Enable change detection after initial setup is complete."""
         self._loading_buffer = False
         # Reset any modified flags that may have been set during setup
+        tab_bar = self.query_one(TabBar)
         for buffer in self.buffer_manager.get_all_buffers():
             if not buffer.path and buffer.content == "":
                 # New empty buffer should not be marked as modified
                 buffer.is_modified = False
-                tab_bar = self.query_one(TabBar)
                 tab_bar.set_modified(buffer.id, False)
 
     def _create_new_buffer(self) -> Buffer:
@@ -113,16 +131,17 @@ class MainScreen(Screen):
         tab_bar = self.query_one(TabBar)
         tab_bar.set_active(buffer.id)
         self.update_status_bar(
-            path=buffer.path or buffer.name,
+            path=str(buffer.path) if buffer.path else buffer.name,
             modified=buffer.is_modified
         )
 
         # Delay re-enabling change detection until after events are processed
+        # Use set_timer to ensure this runs after all async TextArea events
         def finish_switch():
             self._loading_buffer = False
             # Ensure the buffer's modified state is correct in the UI
             tab_bar.set_modified(buffer.id, buffer.is_modified)
-        self.call_after_refresh(finish_switch)
+        self.set_timer(0.05, finish_switch)
 
     def action_new_file(self):
         self._create_new_buffer()
@@ -324,7 +343,7 @@ class MainScreen(Screen):
         for i, file_path_str in enumerate(session.open_files):
             file_path = Path(file_path_str)
             if file_path.exists():
-                buffer = self.buffer_manager.open_file(file_path)
+                buffer = self.buffer_manager.open_file(str(file_path))
                 if buffer:
                     tab_bar.add_tab(TabInfo(
                         id=buffer.id,
@@ -358,3 +377,38 @@ class MainScreen(Screen):
                     active_index = len(open_files) - 1
 
         self.session_manager.save_session(open_files, active_index)
+
+    def action_toggle_file_browser(self):
+        """Toggle the file browser panel."""
+        file_browser = self.query_one(FileBrowser)
+        is_visible = file_browser.toggle()
+        if is_visible:
+            file_browser.focus_tree()
+        else:
+            self.query_one(OnlyCodeEditor).focus()
+
+    def on_file_browser_file_selected(self, event: FileBrowser.FileSelected):
+        """Handle file selection from file browser."""
+        path = event.path
+        # Check if file is already open
+        existing = self.buffer_manager.get_buffer_by_path(path)
+        if existing:
+            self._save_current_buffer_state()
+            buffer = self.buffer_manager.get_buffer(existing)
+            if buffer:
+                self._switch_to_buffer(buffer)
+        else:
+            # Open new file
+            buffer = self.buffer_manager.open_file(path)
+            if buffer:
+                tab_bar = self.query_one(TabBar)
+                if buffer.id not in tab_bar.get_tab_ids():
+                    tab_bar.add_tab(TabInfo(
+                        id=buffer.id,
+                        name=buffer.name,
+                        path=buffer.path,
+                        is_modified=buffer.is_modified,
+                    ))
+                self._switch_to_buffer(buffer)
+        # Return focus to editor
+        self.query_one(OnlyCodeEditor).focus()
