@@ -1,0 +1,2 @@
+textual>=0.40.0
+watchfiles>=0.20.0
