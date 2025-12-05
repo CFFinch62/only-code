@@ -71,6 +71,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=['/home/chuck/Dropbox/Programming/Languages_and_Code/Programming_Projects/Code_Editors/Only_Code/images/tui-editor-256.png'],
 )
 coll = COLLECT(
     exe,

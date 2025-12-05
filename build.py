@@ -26,6 +26,7 @@ ROOT_DIR = Path(__file__).parent.absolute()
 DIST_DIR = ROOT_DIR / 'dist'
 BUILD_DIR = ROOT_DIR / 'build'
 SPEC_FILE = ROOT_DIR / 'onlycode.spec'
+IMAGES_DIR = ROOT_DIR / 'images'
 
 
 def get_platform():
@@ -117,6 +118,18 @@ def build(onefile=False):
 
     if onefile:
         cmd.append('--onefile')
+
+    # Add icon based on platform (PyInstaller only supports icons on Windows/macOS)
+    if platform == 'windows':
+        icon_path = IMAGES_DIR / 'tui-editor.ico'
+        if icon_path.exists():
+            cmd.extend(['--icon', str(icon_path)])
+    elif platform == 'macos':
+        # macOS uses .icns or .png
+        icon_path = IMAGES_DIR / 'tui-editor-512.png'
+        if icon_path.exists():
+            cmd.extend(['--icon', str(icon_path)])
+    # Note: Linux doesn't support embedded icons - use .desktop file instead
 
     # TUI app - always use console
     cmd.append('--console')
