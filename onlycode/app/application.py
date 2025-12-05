@@ -9,6 +9,8 @@ from onlycode.app.widgets.file_browser import FileBrowser
 class OnlyCodeApp(App):
     """A terminal-based code editor."""
 
+    TITLE = "Only Code"
+
     BINDINGS = [
         ("d", "toggle_dark", "Toggle dark mode"),
         ("q", "quit", "Quit"),
