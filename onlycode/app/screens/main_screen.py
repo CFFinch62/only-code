@@ -1,3 +1,4 @@
+import os
 from textual.screen import Screen
 from textual.widgets import Header, Footer
 from textual.containers import Horizontal, Vertical
@@ -17,6 +18,10 @@ class MainScreen(Screen):
     """The main screen of the application."""
 
     DEFAULT_CSS = """
+    MainScreen {
+        layout: vertical;
+    }
+
     MainScreen #workspace {
         height: 1fr;
     }
@@ -37,6 +42,7 @@ class MainScreen(Screen):
         Binding("ctrl+w", "close_buffer", "Close", priority=True),
         Binding("ctrl+b", "toggle_file_browser", "Browser", priority=True),
         Binding("ctrl+j", "toggle_terminal", "Terminal", priority=True),
+        Binding("escape", "focus_editor", "Focus Editor", show=False, priority=True),
         # Tab navigation: ctrl+pagedown/pageup are standard in many editors
         Binding("ctrl+pagedown", "next_buffer", "Next Tab", show=False, priority=True),
         Binding("ctrl+pageup", "prev_buffer", "Prev Tab", show=False, priority=True),
@@ -63,14 +69,16 @@ class MainScreen(Screen):
 
     def compose(self):
         yield Header()
+        # Start file browser at the directory from which the app was launched
+        start_path = os.getcwd()
         with Vertical(id="workspace"):
             with Horizontal(id="main-container"):
-                yield FileBrowser(id="file-browser", classes="hidden")
+                yield FileBrowser(path=start_path, id="file-browser", classes="hidden")
                 with Vertical(id="editor-container"):
                     yield TabBar(id="tab-bar")
                     yield OnlyCodeEditor(id="editor")
             yield TerminalPanel(id="terminal-panel", classes="hidden")
-        yield StatusBar(id="status-bar")
+            yield StatusBar(id="status-bar")
         yield Footer()
 
     def on_mount(self):
@@ -137,9 +145,16 @@ class MainScreen(Screen):
         # Update UI
         tab_bar = self.query_one(TabBar)
         tab_bar.set_active(buffer.id)
+
+        # Detect line ending from content
+        line_ending = "CRLF" if "\r\n" in buffer.content else "LF"
+
         self.update_status_bar(
             path=str(buffer.path) if buffer.path else buffer.name,
-            modified=buffer.is_modified
+            modified=buffer.is_modified,
+            language=buffer.language,
+            encoding="UTF-8",
+            line_ending=line_ending
         )
 
         # Delay re-enabling change detection until after events are processed
@@ -306,12 +321,25 @@ class MainScreen(Screen):
         self._save_session()
         self.app.exit()
 
-    def update_status_bar(self, path: str = None, modified: bool = None):
+    def update_status_bar(
+        self,
+        path: str = None,
+        modified: bool = None,
+        language: str = None,
+        encoding: str = None,
+        line_ending: str = None
+    ):
         status_bar = self.query_one(StatusBar)
         if path is not None:
             status_bar.file_path = path
         if modified is not None:
             status_bar.is_modified = modified
+        if language is not None:
+            status_bar.language = language
+        if encoding is not None:
+            status_bar.encoding = encoding
+        if line_ending is not None:
+            status_bar.line_ending = line_ending
 
     def on_text_area_changed(self, event):
         """Handle text changes - mark buffer as modified."""
@@ -385,14 +413,29 @@ class MainScreen(Screen):
 
         self.session_manager.save_session(open_files, active_index)
 
+    def action_focus_editor(self):
+        """Return focus to the editor."""
+        self.query_one(OnlyCodeEditor).focus()
+
     def action_toggle_file_browser(self):
-        """Toggle the file browser panel."""
+        """Toggle the file browser panel, or focus it if visible but not focused."""
         file_browser = self.query_one(FileBrowser)
-        is_visible = file_browser.toggle()
-        if is_visible:
-            file_browser.focus_tree()
+
+        if file_browser.is_visible:
+            # Check if file browser tree already has focus
+            focused = self.app.focused
+            tree = file_browser.query_one("#file-tree")
+            if focused == tree:
+                # Already focused on tree - hide it
+                file_browser.hide()
+                self.query_one(OnlyCodeEditor).focus()
+            else:
+                # Visible but not focused - focus the tree
+                file_browser.focus_tree()
         else:
-            self.query_one(OnlyCodeEditor).focus()
+            # Not visible - show and focus
+            file_browser.show()
+            file_browser.focus_tree()
 
     def action_toggle_terminal(self):
         """Toggle the terminal panel, or focus it if visible but not focused."""

@@ -6,7 +6,7 @@ authors = [
     {name = "Chuck", email = "chuck@example.com"},
 ]
 dependencies = [
-    "textual>=0.40.0",
+    "textual[syntax]>=0.40.0",
     "watchfiles>=0.20.0",
 ]
 requires-python = ">=3.8"

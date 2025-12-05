@@ -1,6 +1,6 @@
 # Only Code Editor - File Browser Widget
 from textual.widgets import DirectoryTree, Static
-from textual.containers import Vertical
+from textual.containers import Vertical, ScrollableContainer
 from textual.widget import Widget
 from textual.reactive import reactive
 from textual.message import Message
@@ -23,7 +23,7 @@ class FileBrowser(Widget):
 
     DEFAULT_CSS = """
     FileBrowser {
-        width: 30;
+        width: 35;
         height: 100%;
         border-right: solid $primary;
         background: $surface;
@@ -33,17 +33,32 @@ class FileBrowser(Widget):
         display: none;
     }
 
-    FileBrowser #browser-title {
+    FileBrowser #browser-header {
         dock: top;
         height: 1;
         background: $primary;
         color: $text;
-        text-align: center;
-        text-style: bold;
+        padding: 0 1;
+    }
+
+    FileBrowser #browser-path {
+        dock: top;
+        height: 1;
+        background: $surface-darken-1;
+        color: $text-muted;
+        padding: 0 1;
+        text-style: italic;
+    }
+
+    FileBrowser #tree-container {
+        height: 1fr;
+        overflow-x: auto;
+        overflow-y: auto;
     }
 
     FileBrowser DirectoryTree {
-        height: 1fr;
+        width: auto;
+        min-width: 100%;
         scrollbar-gutter: stable;
     }
     """
@@ -74,12 +89,21 @@ class FileBrowser(Widget):
         self.root_path = os.path.abspath(path)
 
     def compose(self):
-        yield Static(self._get_title(), id="browser-title")
-        yield FilteredDirectoryTree(self.root_path, id="file-tree")
+        yield Static("📁 Files", id="browser-header")
+        yield Static(self._get_short_path(), id="browser-path")
+        with ScrollableContainer(id="tree-container"):
+            yield FilteredDirectoryTree(self.root_path, id="file-tree")
 
-    def _get_title(self) -> str:
-        """Get the title showing current directory."""
-        return f"📁 {Path(self.root_path).name}"
+    def _get_short_path(self) -> str:
+        """Get shortened path for display (replace home with ~)."""
+        path = self.root_path
+        home = str(Path.home())
+        if path.startswith(home):
+            path = "~" + path[len(home):]
+        # Truncate if too long
+        if len(path) > 32:
+            path = "..." + path[-29:]
+        return path
 
     def on_directory_tree_file_selected(self, event: DirectoryTree.FileSelected):
         """Handle file selection - open in editor."""
@@ -107,4 +131,14 @@ class FileBrowser(Widget):
     def is_visible(self) -> bool:
         """Check if file browser is visible."""
         return not self.has_class("hidden")
+
+    def set_root(self, path: str) -> None:
+        """Change the root directory of the file browser."""
+        self.root_path = os.path.abspath(path)
+        # Update the path display
+        path_label = self.query_one("#browser-path", Static)
+        path_label.update(self._get_short_path())
+        # Update the directory tree path (reactive property handles the rest)
+        tree = self.query_one(FilteredDirectoryTree)
+        tree.path = self.root_path
 

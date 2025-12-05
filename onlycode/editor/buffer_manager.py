@@ -46,19 +46,74 @@ class Buffer:
     def _detect_language(suffix: str) -> str:
         """Detect language from file extension."""
         language_map = {
+            # Python
             ".py": "python",
+            ".pyw": "python",
+            ".pyi": "python",
+            # JavaScript/TypeScript
             ".js": "javascript",
+            ".jsx": "javascript",
             ".ts": "typescript",
+            ".tsx": "typescript",
+            # Web
             ".json": "json",
-            ".md": "markdown",
             ".html": "html",
+            ".htm": "html",
             ".css": "css",
+            ".scss": "css",
+            ".sass": "css",
+            # Markdown
+            ".md": "markdown",
+            ".markdown": "markdown",
+            # Systems languages
             ".rs": "rust",
             ".go": "go",
+            ".c": "c",
+            ".h": "c",
+            ".cpp": "cpp",
+            ".cxx": "cpp",
+            ".cc": "cpp",
+            ".hpp": "cpp",
+            ".hxx": "cpp",
+            # JVM languages
+            ".java": "java",
+            ".scala": "scala",
+            # Scripting languages
             ".sh": "bash",
+            ".bash": "bash",
+            ".zsh": "bash",
+            ".rb": "ruby",
+            ".lua": "lua",
+            ".r": "r",
+            ".R": "r",
+            ".rkt": "racket",
+            ".scm": "scheme",
+            # Config files
             ".yaml": "yaml",
             ".yml": "yaml",
             ".toml": "toml",
+            ".xml": "xml",
+            ".ini": "ini",
+            # Pascal/Delphi
+            ".pas": "pascal",
+            ".pp": "pascal",
+            ".dpr": "pascal",
+            # Legacy languages
+            ".bas": "basic",
+            ".vb": "basic",
+            ".vbs": "basic",
+            ".f": "fortran",
+            ".f90": "fortran",
+            ".f95": "fortran",
+            ".for": "fortran",
+            ".logo": "logo",
+            # Other
+            ".sql": "sql",
+            ".php": "php",
+            ".pl": "perl",
+            ".swift": "swift",
+            ".kt": "kotlin",
+            ".kts": "kotlin",
         }
         return language_map.get(suffix.lower(), "text")
 
