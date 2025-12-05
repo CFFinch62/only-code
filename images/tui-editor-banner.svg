@@ -10,8 +10,8 @@
     <text x="128" y="114" font-family="monospace" font-size="48" font-weight="500" fill="#2563eb">}</text>
     
     <!-- Title - replace with your TUI editor name -->
-    <text x="200" y="95" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="300" fill="#e8e8e8">TUI Editor</text>
+    <text x="200" y="95" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="300" fill="#e8e8e8">Only Code</text>
     
     <!-- Tagline -->
-    <text x="200" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#888888">A terminal-based code editor</text>
+    <text x="200" y="130" font-family="system-ui, -apple-system, sans-serif" font-size="18" fill="#888888">A terminal-based code editor with a little extra</text>
 </svg>
