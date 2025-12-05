@@ -1,6 +1,6 @@
 from textual.screen import Screen
 from textual.widgets import Header, Footer
-from textual.containers import Horizontal
+from textual.containers import Horizontal, Vertical
 from textual.binding import Binding
 from pathlib import Path
 from onlycode.editor.editor_widget import OnlyCodeEditor
@@ -8,6 +8,7 @@ from onlycode.editor.buffer_manager import BufferManager, Buffer
 from onlycode.app.widgets.status_bar import StatusBar
 from onlycode.app.widgets.tab_bar import TabBar, TabInfo
 from onlycode.app.widgets.file_browser import FileBrowser
+from onlycode.app.widgets.terminal_panel import TerminalPanel
 from onlycode.app.screens.file_dialogs import OpenFileDialog, SaveFileDialog, ConfirmCloseDialog
 from onlycode.shared.config.session import SessionManager
 
@@ -16,6 +17,10 @@ class MainScreen(Screen):
     """The main screen of the application."""
 
     DEFAULT_CSS = """
+    MainScreen #workspace {
+        height: 1fr;
+    }
+
     MainScreen #main-container {
         height: 1fr;
     }
@@ -31,6 +36,7 @@ class MainScreen(Screen):
         Binding("ctrl+t", "new_file", "New Tab", priority=True),
         Binding("ctrl+w", "close_buffer", "Close", priority=True),
         Binding("ctrl+b", "toggle_file_browser", "Browser", priority=True),
+        Binding("ctrl+j", "toggle_terminal", "Terminal", priority=True),
         # Tab navigation: ctrl+pagedown/pageup are standard in many editors
         Binding("ctrl+pagedown", "next_buffer", "Next Tab", show=False, priority=True),
         Binding("ctrl+pageup", "prev_buffer", "Prev Tab", show=False, priority=True),
@@ -56,13 +62,14 @@ class MainScreen(Screen):
         self._loading_buffer = True  # Start True to prevent marking as modified during initial setup
 
     def compose(self):
-        from textual.containers import Vertical
         yield Header()
-        with Horizontal(id="main-container"):
-            yield FileBrowser(id="file-browser", classes="hidden")
-            with Vertical(id="editor-container"):
-                yield TabBar(id="tab-bar")
-                yield OnlyCodeEditor(id="editor")
+        with Vertical(id="workspace"):
+            with Horizontal(id="main-container"):
+                yield FileBrowser(id="file-browser", classes="hidden")
+                with Vertical(id="editor-container"):
+                    yield TabBar(id="tab-bar")
+                    yield OnlyCodeEditor(id="editor")
+            yield TerminalPanel(id="terminal-panel", classes="hidden")
         yield StatusBar(id="status-bar")
         yield Footer()
 
@@ -386,6 +393,48 @@ class MainScreen(Screen):
             file_browser.focus_tree()
         else:
             self.query_one(OnlyCodeEditor).focus()
+
+    def action_toggle_terminal(self):
+        """Toggle the terminal panel, or focus it if visible but not focused."""
+        terminal = self.query_one(TerminalPanel)
+
+        if terminal.is_visible:
+            # Check if terminal already has focus
+            focused = self.app.focused
+            terminal_has_focus = False
+            if focused:
+                try:
+                    terminal_has_focus = terminal in focused.ancestors_with_self
+                except Exception:
+                    pass
+
+            if terminal_has_focus:
+                # Terminal is focused - hide it and return to editor
+                terminal.hide()
+                self.query_one(OnlyCodeEditor).focus()
+            else:
+                # Terminal is visible but not focused - just focus it
+                terminal.focus_input()
+        else:
+            # Terminal is hidden - show it and focus
+            terminal.show()
+            terminal.focus_input()
+
+    def on_key(self, event):
+        """Handle global key events."""
+        # Escape in terminal returns focus to editor
+        if event.key == "escape":
+            terminal = self.query_one(TerminalPanel)
+            if terminal.is_visible:
+                # Check if focus is in terminal
+                try:
+                    focused = self.app.focused
+                    if focused and terminal in focused.ancestors_with_self:
+                        self.query_one(OnlyCodeEditor).focus()
+                        event.prevent_default()
+                        event.stop()
+                except Exception:
+                    pass
 
     def on_file_browser_file_selected(self, event: FileBrowser.FileSelected):
         """Handle file selection from file browser."""
