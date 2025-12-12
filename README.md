@@ -2,6 +2,8 @@
 
 # Only Code
 
+![Only Code Screenshot](images/Only_Code.png)
+
 A lightweight terminal-based code editor built with Python and Textual.
 
 ## Philosophy
