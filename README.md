@@ -17,6 +17,7 @@ The name "Only Code" carries three intentional meanings:
 
 ### Core Editing
 - Syntax highlighting for 15+ languages (Python, JavaScript, Rust, Go, HTML, CSS, JSON, YAML, and more)
+- Unrecognized langauges display as simple plain text.
 - Multi-file editing with tabs
 - Line numbers
 - Auto-indent on Enter
