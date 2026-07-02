@@ -186,6 +186,11 @@ class OnlyCodeApp(App):
 
         # File browser root switching
         yield SystemCommand(
+            "Open Folder...",
+            "Pick a folder to browse (re-roots the file browser)",
+            screen.action_open_folder,
+        )
+        yield SystemCommand(
             "Browse: Home Directory",
             "Set file browser to home directory (~)",
             self.action_browse_home,

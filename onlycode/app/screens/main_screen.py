@@ -10,7 +10,7 @@ from onlycode.app.widgets.status_bar import StatusBar
 from onlycode.app.widgets.tab_bar import TabBar, TabInfo
 from onlycode.app.widgets.file_browser import FileBrowser
 from onlycode.app.widgets.terminal_panel import TerminalPanel
-from onlycode.app.screens.file_dialogs import OpenFileDialog, SaveFileDialog, ConfirmCloseDialog
+from onlycode.app.screens.file_dialogs import OpenFileDialog, OpenFolderDialog, SaveFileDialog, ConfirmCloseDialog
 from onlycode.shared.config.session import SessionManager
 
 
@@ -37,6 +37,7 @@ class MainScreen(Screen):
 
     BINDINGS = [
         Binding("ctrl+o", "open_file", "Open", priority=True),
+        Binding("ctrl+shift+o", "open_folder", "Open Folder", priority=True),
         Binding("ctrl+s", "save_file", "Save", priority=True),
         Binding("ctrl+t", "new_file", "New Tab", priority=True),
         Binding("ctrl+w", "close_buffer", "Close", priority=True),
@@ -140,7 +141,12 @@ class MainScreen(Screen):
         self._loading_buffer = True
         self.buffer_manager.set_active(buffer.id)
         editor.text = buffer.content
-        editor.language = buffer.language
+        # Only apply syntax highlighting if Textual actually has a tree-sitter
+        # grammar for this language; otherwise fall back to plain text instead
+        # of crashing with LanguageDoesNotExist.
+        editor.language = (
+            buffer.language if buffer.language in editor.available_languages else None
+        )
 
         # Update UI
         tab_bar = self.query_one(TabBar)
@@ -191,6 +197,24 @@ class MainScreen(Screen):
                     self.notify(f"Failed to open {path}", severity="error")
 
         self.app.push_screen(OpenFileDialog(), open_file_callback)
+
+    def action_open_folder(self):
+        """Re-root the file browser to a folder picked via a dialog."""
+        def open_folder_callback(path: str | None):
+            if not path:
+                return
+            if not os.path.isdir(path):
+                self.notify(f"Not a folder: {path}", severity="error")
+                return
+            browser = self.query_one(FileBrowser)
+            browser.set_root(path)
+            browser.show()
+            browser.focus_tree()
+            self.notify(f"Browse: {path}")
+
+        # Start browsing from wherever the file browser currently is rooted.
+        browser = self.query_one(FileBrowser)
+        self.app.push_screen(OpenFolderDialog(browser.root_path), open_folder_callback)
 
     def action_save_file(self):
         buffer = self.buffer_manager.active_buffer

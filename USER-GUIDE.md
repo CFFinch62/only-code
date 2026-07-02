@@ -78,6 +78,12 @@ Only Code starts with:
 - **Double-click** in file browser
 - Files open in new tabs
 
+### Opening a Folder
+- **Ctrl+Shift+O** - Opens a folder selection dialog and re-roots the file browser there
+- Browse the tree and click **Select**, or type a path directly into the box
+- Also available as **Open Folder...** in the command palette (Ctrl+P)
+- Quicker alternative: **double-click any folder** in the file browser to jump straight into it (see [File Browser](#file-browser))
+
 ### Creating Files
 - **Ctrl+T** - Create a new untitled tab
 - New files are named "Untitled", "Untitled 2", etc.
@@ -140,15 +146,21 @@ Toggle with **Ctrl+B**. Shows files and directories in a tree view.
 
 ### Navigation
 - **Click folder** - Expand/collapse
+- **Double-click folder** - Open it as the new browser root (jump straight in, instead of drilling down manually)
 - **Double-click file** - Open in editor
 - **Arrow keys** - Navigate tree
 
 ### Changing Root Directory
 
-Use the command palette (Ctrl+P) to change what directory the file browser shows:
+Three ways to change what directory the file browser shows:
+
+- **Double-click a folder** in the tree to make it the new root
+- **Ctrl+Shift+O** (or **Open Folder...** in the command palette) opens a folder picker - browse or type a path, then Select
+- Command palette (Ctrl+P) shortcuts for common locations:
 
 | Command | Description |
 |---------|-------------|
+| Open Folder... | Pick any folder via a dialog (browse or type a path) |
 | Browse: Home Directory | Switch to `~` (home folder) |
 | Browse: Filesystem Root | Switch to `/` (entire filesystem) |
 | Browse: Launch Directory | Return to where you started the app |
@@ -190,6 +202,7 @@ Press **Ctrl+P** to open the command palette. Type to filter commands.
 - `Toggle Auto-Indent` - Enable/disable auto-indent on Enter
 
 **File Browser:**
+- `Open Folder...` - Pick a folder to browse (re-roots the file browser)
 - `Browse: Home Directory` - Set browser to ~/
 - `Browse: Filesystem Root` - Set browser to /
 - `Browse: Launch Directory` - Set browser to launch directory
@@ -232,6 +245,7 @@ To reset to auto-matching: Select "Syntax Theme: Auto (match UI)"
 | Shortcut | Action |
 |----------|--------|
 | Ctrl+O | Open file |
+| Ctrl+Shift+O | Open folder (re-root file browser) |
 | Ctrl+S | Save file |
 | Ctrl+T | New tab |
 | Ctrl+W | Close tab |
@@ -267,7 +281,7 @@ To reset to auto-matching: Select "Syntax Theme: Auto (match UI)"
 ## Tips and Tricks
 
 1. **Quick file access** - Use Ctrl+O and type part of the filename to filter
-2. **Navigate large projects** - Use "Browse: Home Directory" to jump to ~ then navigate
+2. **Navigate large projects** - Double-click a folder in the file browser to re-root there instantly, or use Ctrl+Shift+O / "Open Folder..." to jump to any path directly, instead of drilling down folder by folder
 3. **Check shortcuts** - Press Ctrl+P, type "Keys" to see all keybindings
 4. **Code vs prose** - Disable auto-indent when writing prose/markdown
 5. **Terminal workflow** - Keep terminal open while editing, run tests quickly
@@ -307,6 +321,8 @@ Make sure the file has a recognized extension. Check the status bar - it shows t
 Some terminal emulators capture certain shortcuts. If a shortcut doesn't work:
 1. Check your terminal's settings
 2. Use the command palette (Ctrl+P) as an alternative
+
+Ctrl+Shift+O (Open Folder) is a common case: many terminals can't distinguish Ctrl+Shift+O from Ctrl+O, since Shift often doesn't change the byte sent for a Ctrl+letter combo unless the terminal supports an extended keyboard protocol. If Ctrl+Shift+O opens a file dialog instead of a folder dialog, use **Open Folder...** from the command palette (Ctrl+P) instead.
 
 ---
 

@@ -1,4 +1,5 @@
 # Only Code Editor - File Browser Widget
+from textual import events
 from textual.widgets import DirectoryTree, Static
 from textual.containers import Vertical, ScrollableContainer
 from textual.widget import Widget
@@ -13,9 +14,28 @@ import os
 class FilteredDirectoryTree(DirectoryTree):
     """DirectoryTree that hides hidden files (starting with .)"""
 
+    class DirectoryOpened(Message):
+        """Sent when a directory node is double-clicked."""
+        def __init__(self, path: str):
+            super().__init__()
+            self.path = path
+
     def filter_paths(self, paths: Iterable[Path]) -> Iterable[Path]:
         """Filter out hidden files and directories."""
         return [p for p in paths if not p.name.startswith(".")]
+
+    async def _on_click(self, event: events.Click) -> None:
+        """Double-clicking a directory opens it as the new browser root."""
+        if event.chain == 2:
+            line = event.style.meta.get("line")
+            if line is not None:
+                node = self.get_node_at_line(line)
+                if node is not None and node.data is not None and node.data.path.is_dir():
+                    event.stop()
+                    event.prevent_default()
+                    self.post_message(self.DirectoryOpened(str(node.data.path)))
+                    return
+        await super()._on_click(event)
 
 
 class FileBrowser(Widget):
@@ -108,6 +128,15 @@ class FileBrowser(Widget):
     def on_directory_tree_file_selected(self, event: DirectoryTree.FileSelected):
         """Handle file selection - open in editor."""
         self.post_message(self.FileSelected(str(event.path)))
+
+    def on_filtered_directory_tree_directory_opened(
+        self, event: FilteredDirectoryTree.DirectoryOpened
+    ) -> None:
+        """Handle a double-clicked directory - make it the new browser root."""
+        event.stop()
+        self.set_root(event.path)
+        self.post_message(self.DirectoryChanged(event.path))
+        self.notify(f"Browse: {self._get_short_path()}")
 
     def toggle(self):
         """Toggle visibility of the file browser."""

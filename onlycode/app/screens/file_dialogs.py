@@ -104,6 +104,27 @@ class SaveFileDialog(FileDialog):
         super().__init__("Save File")
 
 
+class OpenFolderDialog(FileDialog):
+    """Dialog for picking a directory (e.g. to re-root the file browser)."""
+
+    def __init__(self, initial_path: str | None = None):
+        super().__init__("Open Folder", initial_path=initial_path)
+
+    def on_mount(self):
+        super().on_mount()
+        self.query_one(Input).placeholder = "Folder path (optional - or browse and Select)"
+
+    def _on_select(self):
+        # Unlike the file dialog, an empty input just means "use the
+        # currently browsed folder" rather than being invalid.
+        typed_path = self.query_one(Input).value.strip()
+        if typed_path:
+            path = typed_path if os.path.isabs(typed_path) else os.path.join(self.current_dir, typed_path)
+        else:
+            path = self.current_dir
+        self.dismiss(path)
+
+
 class ConfirmCloseDialog(ModalScreen[str]):
     """Dialog to confirm closing an unsaved file."""
 
