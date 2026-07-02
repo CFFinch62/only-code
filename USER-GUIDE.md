@@ -79,9 +79,8 @@ Only Code starts with:
 - Files open in new tabs
 
 ### Opening a Folder
-- **Ctrl+Shift+O** - Opens a folder selection dialog and re-roots the file browser there
+- **Open Folder...** in the command palette (Ctrl+P) - Opens a folder selection dialog and re-roots the file browser there
 - Browse the tree and click **Select**, or type a path directly into the box
-- Also available as **Open Folder...** in the command palette (Ctrl+P)
 - Quicker alternative: **double-click any folder** in the file browser to jump straight into it (see [File Browser](#file-browser))
 
 ### Creating Files
@@ -155,7 +154,7 @@ Toggle with **Ctrl+B**. Shows files and directories in a tree view.
 Three ways to change what directory the file browser shows:
 
 - **Double-click a folder** in the tree to make it the new root
-- **Ctrl+Shift+O** (or **Open Folder...** in the command palette) opens a folder picker - browse or type a path, then Select
+- **Open Folder...** in the command palette (Ctrl+P) opens a folder picker - browse or type a path, then Select
 - Command palette (Ctrl+P) shortcuts for common locations:
 
 | Command | Description |
@@ -245,7 +244,6 @@ To reset to auto-matching: Select "Syntax Theme: Auto (match UI)"
 | Shortcut | Action |
 |----------|--------|
 | Ctrl+O | Open file |
-| Ctrl+Shift+O | Open folder (re-root file browser) |
 | Ctrl+S | Save file |
 | Ctrl+T | New tab |
 | Ctrl+W | Close tab |
@@ -281,7 +279,7 @@ To reset to auto-matching: Select "Syntax Theme: Auto (match UI)"
 ## Tips and Tricks
 
 1. **Quick file access** - Use Ctrl+O and type part of the filename to filter
-2. **Navigate large projects** - Double-click a folder in the file browser to re-root there instantly, or use Ctrl+Shift+O / "Open Folder..." to jump to any path directly, instead of drilling down folder by folder
+2. **Navigate large projects** - Double-click a folder in the file browser to re-root there instantly, or use "Open Folder..." from the command palette to jump to any path directly, instead of drilling down folder by folder
 3. **Check shortcuts** - Press Ctrl+P, type "Keys" to see all keybindings
 4. **Code vs prose** - Disable auto-indent when writing prose/markdown
 5. **Terminal workflow** - Keep terminal open while editing, run tests quickly
@@ -318,11 +316,11 @@ Make sure the file has a recognized extension. Check the status bar - it shows t
 
 ### Keybinding conflicts
 
-Some terminal emulators capture certain shortcuts. If a shortcut doesn't work:
+Some terminal emulators capture certain shortcuts, or can't distinguish modifier combinations like Ctrl+Shift+<letter> or Ctrl+Alt+<letter> from their unmodified base key. If a shortcut doesn't work:
 1. Check your terminal's settings
 2. Use the command palette (Ctrl+P) as an alternative
 
-Ctrl+Shift+O (Open Folder) is a common case: many terminals can't distinguish Ctrl+Shift+O from Ctrl+O, since Shift often doesn't change the byte sent for a Ctrl+letter combo unless the terminal supports an extended keyboard protocol. If Ctrl+Shift+O opens a file dialog instead of a folder dialog, use **Open Folder...** from the command palette (Ctrl+P) instead.
+Note: Open Folder has no dedicated shortcut for this reason - it's only available as **Open Folder...** in the command palette (Ctrl+P), or via double-clicking a folder in the file browser.
 
 ---
 

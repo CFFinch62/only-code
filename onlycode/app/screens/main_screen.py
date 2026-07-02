@@ -37,7 +37,6 @@ class MainScreen(Screen):
 
     BINDINGS = [
         Binding("ctrl+o", "open_file", "Open", priority=True),
-        Binding("ctrl+shift+o", "open_folder", "Open Folder", priority=True),
         Binding("ctrl+s", "save_file", "Save", priority=True),
         Binding("ctrl+t", "new_file", "New Tab", priority=True),
         Binding("ctrl+w", "close_buffer", "Close", priority=True),
