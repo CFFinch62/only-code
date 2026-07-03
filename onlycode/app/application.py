@@ -191,6 +191,11 @@ class OnlyCodeApp(App):
             screen.action_open_folder,
         )
         yield SystemCommand(
+            "New Folder...",
+            "Create a new folder in the currently browsed/selected directory",
+            screen.action_new_folder,
+        )
+        yield SystemCommand(
             "Browse: Home Directory",
             "Set file browser to home directory (~)",
             self.action_browse_home,

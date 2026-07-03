@@ -161,6 +161,21 @@ class FileBrowser(Widget):
         """Check if file browser is visible."""
         return not self.has_class("hidden")
 
+    def get_target_directory(self) -> str:
+        """Directory to create new files/folders in: the directory
+        highlighted in the tree (or its parent, if a file is highlighted),
+        falling back to the browser root."""
+        tree = self.query_one(FilteredDirectoryTree)
+        node = tree.cursor_node
+        if node is not None and node.data is not None:
+            path = node.data.path
+            return str(path if path.is_dir() else path.parent)
+        return self.root_path
+
+    def reload(self) -> None:
+        """Refresh the directory tree contents."""
+        self.query_one(FilteredDirectoryTree).reload()
+
     def set_root(self, path: str) -> None:
         """Change the root directory of the file browser."""
         self.root_path = os.path.abspath(path)

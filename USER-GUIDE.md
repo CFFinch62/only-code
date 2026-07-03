@@ -87,6 +87,10 @@ Only Code starts with:
 - **Ctrl+T** - Create a new untitled tab
 - New files are named "Untitled", "Untitled 2", etc.
 
+### Creating Folders
+- **New Folder...** in the command palette (Ctrl+P) - Prompts for a name and creates it
+- Created inside whichever directory is highlighted in the file browser tree (or its root, if nothing is highlighted)
+
 ### Saving Files
 - **Ctrl+S** - Save current file
 - If file is untitled, prompts for filename
@@ -202,6 +206,7 @@ Press **Ctrl+P** to open the command palette. Type to filter commands.
 
 **File Browser:**
 - `Open Folder...` - Pick a folder to browse (re-roots the file browser)
+- `New Folder...` - Create a new folder in the currently browsed/selected directory
 - `Browse: Home Directory` - Set browser to ~/
 - `Browse: Filesystem Root` - Set browser to /
 - `Browse: Launch Directory` - Set browser to launch directory

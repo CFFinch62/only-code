@@ -10,7 +10,7 @@ from onlycode.app.widgets.status_bar import StatusBar
 from onlycode.app.widgets.tab_bar import TabBar, TabInfo
 from onlycode.app.widgets.file_browser import FileBrowser
 from onlycode.app.widgets.terminal_panel import TerminalPanel
-from onlycode.app.screens.file_dialogs import OpenFileDialog, OpenFolderDialog, SaveFileDialog, ConfirmCloseDialog
+from onlycode.app.screens.file_dialogs import OpenFileDialog, OpenFolderDialog, SaveFileDialog, NewFolderDialog, ConfirmCloseDialog
 from onlycode.shared.config.session import SessionManager
 
 
@@ -214,6 +214,28 @@ class MainScreen(Screen):
         # Start browsing from wherever the file browser currently is rooted.
         browser = self.query_one(FileBrowser)
         self.app.push_screen(OpenFolderDialog(browser.root_path), open_folder_callback)
+
+    def action_new_folder(self):
+        """Create a new folder inside the currently browsed/selected directory."""
+        browser = self.query_one(FileBrowser)
+        target_dir = browser.get_target_directory()
+
+        def new_folder_callback(name: str | None):
+            if not name:
+                return
+            new_path = os.path.join(target_dir, name)
+            try:
+                os.makedirs(new_path)
+            except FileExistsError:
+                self.notify(f"'{name}' already exists", severity="error")
+                return
+            except OSError as e:
+                self.notify(f"Failed to create folder: {e}", severity="error")
+                return
+            browser.reload()
+            self.notify(f"Created folder {new_path}")
+
+        self.app.push_screen(NewFolderDialog(target_dir), new_folder_callback)
 
     def action_save_file(self):
         buffer = self.buffer_manager.active_buffer

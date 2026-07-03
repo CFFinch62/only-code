@@ -125,6 +125,66 @@ class OpenFolderDialog(FileDialog):
         self.dismiss(path)
 
 
+class NewFolderDialog(ModalScreen[str]):
+    """Dialog for creating a new folder inside a target directory."""
+
+    DEFAULT_CSS = """
+    NewFolderDialog {
+        align: center middle;
+    }
+    #dialog-container {
+        width: 60;
+        height: auto;
+        border: solid $accent;
+        background: $surface;
+        padding: 1 2;
+    }
+    #target-display {
+        margin-bottom: 1;
+        color: $text-muted;
+    }
+    #buttons {
+        height: auto;
+        align: right middle;
+        margin-top: 1;
+    }
+    Button {
+        margin-left: 1;
+    }
+    """
+
+    def __init__(self, target_dir: str):
+        super().__init__()
+        self.target_dir = target_dir
+
+    def compose(self):
+        with Vertical(id="dialog-container"):
+            yield Label("New Folder")
+            yield Label(f"in {self.target_dir}", id="target-display")
+            yield Input(placeholder="Folder name", id="folder-name-input")
+            with Horizontal(id="buttons"):
+                yield Button("Cancel", variant="error", id="cancel")
+                yield Button("Create", variant="primary", id="create")
+
+    def on_mount(self):
+        self.query_one(Input).focus()
+
+    def on_input_submitted(self, event: Input.Submitted):
+        self._create()
+
+    def on_button_pressed(self, event: Button.Pressed):
+        if event.button.id == "create":
+            self._create()
+        elif event.button.id == "cancel":
+            self.dismiss(None)
+
+    def _create(self):
+        name = self.query_one(Input).value.strip()
+        if not name:
+            return
+        self.dismiss(name)
+
+
 class ConfirmCloseDialog(ModalScreen[str]):
     """Dialog to confirm closing an unsaved file."""
 
